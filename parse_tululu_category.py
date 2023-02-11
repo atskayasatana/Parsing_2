@@ -1,3 +1,4 @@
+import argparse
 import json
 import os.path
 import re
@@ -12,13 +13,15 @@ from urllib3.exceptions import HTTPError
 
 
 if __name__ == '__main__':
-
     downloaded_books = []
     max_pages_qty = 1
 
-    project_dir = os.path.dirname(os.path.realpath(__file__))
-    Path(os.path.join(project_dir, 'books')).mkdir(parents=True, exist_ok=True)
-    Path(os.path.join(project_dir, 'images')).mkdir(parents=True, exist_ok=True)
+    parser = argparse.ArgumentParser(description='Скачиваем книги с сайта tululu.org')
+    parser.add_argument('start_page', nargs='?',help='С какой страницы начинаем', type=int, default=1)
+    parser.add_argument('end_page', nargs='?', help='На какой странице заканчиваем', type=int, default=4)
+    args = parser.parse_args()
+    start_page =args.start_page
+    end_page = args.end_page
 
     url = 'https://tululu.org/l55/'
     response = requests.get(url)
@@ -28,14 +31,20 @@ if __name__ == '__main__':
     if pages:
         max_pages_qty = pages[-1].text
 
-    for i in range(8,10):
+    if end_page>max_pages_qty:
+        end_page = max_pages_qty
+
+    project_dir = os.path.dirname(os.path.realpath(__file__))
+    Path(os.path.join(project_dir, 'books')).mkdir(parents=True, exist_ok=True)
+    Path(os.path.join(project_dir, 'images')).mkdir(parents=True, exist_ok=True)
+
+    for i in range(start_page, end_page+1):
         try:
             genre_page_url = urljoin(url, f"{i}/")
             print('Жанр:', genre_page_url)
             response = requests.get(genre_page_url)
             check_for_redirect(response)
             soup = BeautifulSoup(response.text, 'lxml')
-            #books = soup.find_all('table', class_='d_book')
             books_selector = ".d_book .bookimage a[href^='/b']"
             selected_books = soup.select(books_selector)
             print("Книг найдено:", len(selected_books))
