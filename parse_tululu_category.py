@@ -18,23 +18,22 @@ if __name__ == '__main__':
     project_dir = os.path.dirname(os.path.realpath(__file__))
     Path(os.path.join(project_dir, 'books')).mkdir(parents=True, exist_ok=True)
     Path(os.path.join(project_dir, 'images')).mkdir(parents=True, exist_ok=True)
-    book_urls = []
-    url = 'https://tululu.org/l55/'
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'lxml')
-    books = soup.find_all('table', class_='d_book')
 
-    for i in range(5):
+    url = 'https://tululu.org/l55/'
+
+    for i in range(1,2):
         try:
             genre_page_url = urljoin(url, f"{i}/")
             print('Жанр:', genre_page_url)
             response = requests.get(genre_page_url)
             check_for_redirect(response)
             soup = BeautifulSoup(response.text, 'lxml')
-            books = soup.find_all('table', class_='d_book')
-            print("Книг найдено:", len(books))
-            for book in books:
-                book_id = re.findall(r"\d+", book.find('a')['href'])[0]
+            #books = soup.find_all('table', class_='d_book')
+            books_selector = ".d_book .bookimage a[href^='/b']"
+            selected_books = soup.select(books_selector)
+            print("Книг найдено:", len(selected_books))
+            for book in selected_books:
+                book_id = re.findall(r"\d+", book["href"])[0]
                 print('book_id:', book_id)
                 book_url = urljoin("https://tululu.org", f"b{book_id}/")
                 print('book_url:', book_url)
