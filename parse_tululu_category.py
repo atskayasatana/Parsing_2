@@ -14,14 +14,21 @@ from urllib3.exceptions import HTTPError
 if __name__ == '__main__':
 
     downloaded_books = []
+    max_pages_qty = 1
 
     project_dir = os.path.dirname(os.path.realpath(__file__))
     Path(os.path.join(project_dir, 'books')).mkdir(parents=True, exist_ok=True)
     Path(os.path.join(project_dir, 'images')).mkdir(parents=True, exist_ok=True)
 
     url = 'https://tululu.org/l55/'
+    response = requests.get(url)
+    check_for_redirect(response)
+    soup = BeautifulSoup(response.text, 'lxml')
+    pages = soup.select(".center .npage")
+    if pages:
+        max_pages_qty = pages[-1].text
 
-    for i in range(1,2):
+    for i in range(8,10):
         try:
             genre_page_url = urljoin(url, f"{i}/")
             print('Жанр:', genre_page_url)
