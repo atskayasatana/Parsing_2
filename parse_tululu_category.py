@@ -12,6 +12,9 @@ from urllib3.exceptions import HTTPError
 
 
 if __name__ == '__main__':
+
+    downloaded_books = []
+
     project_dir = os.path.dirname(os.path.realpath(__file__))
     Path(os.path.join(project_dir, 'books')).mkdir(parents=True, exist_ok=True)
     Path(os.path.join(project_dir, 'images')).mkdir(parents=True, exist_ok=True)
@@ -19,11 +22,9 @@ if __name__ == '__main__':
     url = 'https://tululu.org/l55/'
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'lxml')
-
     books = soup.find_all('table', class_='d_book')
 
-
-    for i in range(2):
+    for i in range(5):
         try:
             genre_page_url = urljoin(url, f"{i}/")
             print('Жанр:', genre_page_url)
@@ -51,20 +52,9 @@ if __name__ == '__main__':
                 book_description['image_path'] = image_path
                 print(book_path)
                 print(image_path)
-                with open("books/books_info.json", "w") as write_file:
-                    json.dump(book_description, write_file)
-
+                downloaded_books.append(book_description)
         except HTTPError:
             print('Проблема при скачивании!')
 
-
-
-
-
-
-
-
-
-
-
-
+    with open("books/books_info.json", "w") as books_json_file:
+        json.dump(downloaded_books, books_json_file, ensure_ascii=False)
