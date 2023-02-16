@@ -1,21 +1,19 @@
-import argparse
 import os
-import time
-
+import re
 import requests
 
 from bs4 import BeautifulSoup
-from pathlib import Path
 from pathvalidate import sanitize_filename
 from urllib.parse import urljoin
 from urllib3.exceptions import HTTPError
 
 
 def download_txt(url, payload, filename, folder='books/'):
-
+    print(url)
+    print(payload)
     response = requests.get(url, params=payload)
-    print(response.url)
     response.raise_for_status()
+    print(response.url)
     check_for_redirect(response)
     sanitized_filename = sanitize_filename(filename)
     book_path = os.path.join(folder, sanitized_filename)
@@ -39,20 +37,15 @@ def parse_book_page(response):
 
     soup = BeautifulSoup(response.text, 'lxml')
 
-
     title, author = soup.find('h1').text.replace('\xa0', '').split('::')
     author = author.strip()
     title = title.strip()
 
-
     raw_comments = soup.find_all('div', class_='texts')
     comments = [comment.find('span').text for comment in raw_comments]
 
-
     raw_genres = soup.find('span', class_='d_book').find_all('a')
     genres = [genre.text for genre in raw_genres]
-
-
 
     img_short_path = soup.find('div', class_='bookimage').find('img')['src']
     img_path = urljoin(response.url, img_short_path)
@@ -73,3 +66,58 @@ def check_for_redirect(response):
         raise HTTPError
 
 
+def get_books_ids(url, start_page, end_page):
+    books_ids = []
+    for i in range(start_page, end_page + 1):
+        genre_page_url = urljoin(url, f"{i}/")
+        response = requests.get(genre_page_url)
+        check_for_redirect(response)
+        soup = BeautifulSoup(response.text, 'lxml')
+        books_selector = ".d_book .bookimage a[href^='/b']"
+        selected_books = soup.select(books_selector)
+        for book in selected_books:
+            books_ids.append(int(re.findall(r"\d+", book["href"])[0]))
+
+    print('Will be downloaded', len(books_ids))
+    print(books_ids[:5])
+    return books_ids
+
+
+def download_books_w_user_params(url,
+                                 books_ids,
+                                 skip_txt,
+                                 skip_imgs,
+                                 dwnld_dir):
+    downloaded_books = []
+
+    for book_id in books_ids:
+        try:
+            book_url = urljoin(url, f"b{book_id}/")
+            response = requests.get(book_url)
+            book_description = parse_book_page(response)
+            if not skip_txt:
+                print('Downloading books')
+                book_download_url = \
+                    f'{urljoin("https://tululu.org/", "txt.php")}'
+                print(book_download_url)
+                book_download_params = {'id': book_id}
+                print(book_download_params)
+                book_filename = f'{book_id}. {book_description["title"]}.txt'
+                book_path = download_txt(
+                    book_download_url,
+                    book_download_params,
+                    book_filename,
+                    os.path.join(dwnld_dir, 'books'))
+                book_description['book_path'] = book_path
+            if not skip_imgs:
+                print('Downloading images')
+                image_filename = f'{book_id}. {book_description["title"]}.jpg'
+                image_path = download_img(
+                    book_description["cover"],
+                    image_filename,
+                    os.path.join(dwnld_dir, 'images'))
+                book_description['image_path'] = image_path
+            downloaded_books.append(book_description)
+        except HTTPError:
+            print(f'Книгу {book_description["title"]} скачать не удалось')
+    return downloaded_books
