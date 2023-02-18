@@ -1,6 +1,7 @@
 import os
 import re
 import requests
+import time
 
 from bs4 import BeautifulSoup
 from pathvalidate import sanitize_filename
@@ -120,4 +121,12 @@ def download_books_w_user_params(url,
             downloaded_books.append(book_description)
         except HTTPError:
             print(f'Книгу {book_description["title"]} скачать не удалось')
+        except requests.exceptions.ConnectionError:
+            attempt_to_connect = 0
+            print('Проблемы с подключением...')
+            while attempt_to_connect < 15:
+                time.sleep(1.5)
+                attempt_to_connect += 1
+            pass
+
     return downloaded_books
