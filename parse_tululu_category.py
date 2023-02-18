@@ -10,6 +10,7 @@ from functions import get_books_ids
 from pathlib import Path
 
 if __name__ == '__main__':
+
     downloaded_books = []
     max_pages_qty = 1
 

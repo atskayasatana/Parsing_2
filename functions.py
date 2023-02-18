@@ -10,11 +10,8 @@ from urllib3.exceptions import HTTPError
 
 
 def download_txt(url, payload, filename, folder='books/'):
-    print(url)
-    print(payload)
     response = requests.get(url, params=payload)
     response.raise_for_status()
-    print(response.url)
     check_for_redirect(response)
     sanitized_filename = sanitize_filename(filename)
     book_path = os.path.join(folder, sanitized_filename)
@@ -79,8 +76,6 @@ def get_books_ids(url, start_page, end_page):
         for book in selected_books:
             books_ids.append(int(re.findall(r"\d+", book["href"])[0]))
 
-    print('Will be downloaded', len(books_ids))
-    print(books_ids[:5])
     return books_ids
 
 
@@ -97,12 +92,9 @@ def download_books_w_user_params(url,
             response = requests.get(book_url)
             book_description = parse_book_page(response)
             if not skip_txt:
-                print('Downloading books')
                 book_download_url = \
                     f'{urljoin("https://tululu.org/", "txt.php")}'
-                print(book_download_url)
                 book_download_params = {'id': book_id}
-                print(book_download_params)
                 book_filename = f'{book_id}. {book_description["title"]}.txt'
                 book_path = download_txt(
                     book_download_url,
@@ -111,7 +103,6 @@ def download_books_w_user_params(url,
                     os.path.join(dwnld_dir, 'books'))
                 book_description['book_path'] = book_path
             if not skip_imgs:
-                print('Downloading images')
                 image_filename = f'{book_id}. {book_description["title"]}.jpg'
                 image_path = download_img(
                     book_description["cover"],
