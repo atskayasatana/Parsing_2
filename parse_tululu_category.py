@@ -17,7 +17,6 @@ if __name__ == '__main__':
     project_dir = os.path.dirname(os.path.realpath(__file__))
     default_dwnld_dir = Path(os.path.join(project_dir, 'Downloads'))
 
-
     parser = argparse.ArgumentParser(
                 description='Скачиваем книги с сайта tululu.org'
                                      )
