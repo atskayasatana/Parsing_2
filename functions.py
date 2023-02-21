@@ -68,14 +68,26 @@ def get_books_ids(url, start_page, end_page):
 
     books_ids = []
     for page in range(start_page, end_page + 1):
-        genre_page_url = urljoin(url, f"{page}/")
-        response = requests.get(genre_page_url)
-        check_for_redirect(response)
-        soup = BeautifulSoup(response.text, 'lxml')
-        books_selector = ".d_book .bookimage a[href^='/b']"
-        selected_books = soup.select(books_selector)
-        for book in selected_books:
-            books_ids.append(int(re.findall(r"\d+", book["href"])[0]))
+        try:
+            genre_page_url = urljoin(url, f"{page}/")
+            response = requests.get(genre_page_url)
+            response.raise_for_status()
+            check_for_redirect(response)
+            soup = BeautifulSoup(response.text, 'lxml')
+            books_selector = ".d_book .bookimage a[href^='/b']"
+            selected_books = soup.select(books_selector)
+            for book in selected_books:
+                books_ids.append(int(re.findall(r"\d+", book["href"])[0]))
+        except HTTPError:
+            print('Искомая страница не найдена.')
+        except requests.exceptions.ConnectionError:
+            print('Проблемы с подключением!')
+            attempts_to_connect = 0
+            print('Проблемы с подключением...')
+            while attempts_to_connect < 15:
+                time.sleep(2.5)
+                attempts_to_connect += 1
+            pass
 
     return books_ids
 
@@ -120,5 +132,6 @@ def download_books_w_user_params(url,
                 time.sleep(1.5)
                 attempt_to_connect += 1
             pass
+
 
     return downloaded_books
