@@ -65,9 +65,10 @@ def check_for_redirect(response):
 
 
 def get_books_ids(url, start_page, end_page):
+
     books_ids = []
-    for i in range(start_page, end_page + 1):
-        genre_page_url = urljoin(url, f"{i}/")
+    for page in range(start_page, end_page + 1):
+        genre_page_url = urljoin(url, f"{page}/")
         response = requests.get(genre_page_url)
         check_for_redirect(response)
         soup = BeautifulSoup(response.text, 'lxml')
