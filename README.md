@@ -45,15 +45,15 @@ python parce_tululu_category.py [-s] [-e] [-df] [-sk_i] [-sk_t] [-jp]
 
 ## Функции
 
-### def download_txt(url, payload, filename, folder='books/')
+#### def download_txt(url, payload, filename, folder='books/')
 
 Функция для скачивания текстовой версии книги. На вход получает url для скачивания и параметр payload, с указанием id книги, формирует адрес с ече версией книги и если книга по заданному адресу есть, то скачивает ее. Если книги нет - выбрасывает исключение. Возвращает путь к скачанной книге.
 
-### def download_img(url, filename, folder='images/')
+#### def download_img(url, filename, folder='images/')
 
 Функция для скачивания обложек к книгам. На вход получает адрес обложки, имя файла под которым обложку нужно сохранить и папку, в которую нужно сохранить картинку. Если картинка находится по указанному адресу, то функция возвращает путь к скачанному файлу, в противном случае - выбрасывает исключение.
 
-### def parse_book_page(response)
+#### def parse_book_page(response)
 
 Функция для парсинга вебстраницы с книгой. На вход получает response c текстом страницы, возвращает словарь с данными о книге:
 - автор
@@ -62,11 +62,11 @@ python parce_tululu_category.py [-s] [-e] [-df] [-sk_i] [-sk_t] [-jp]
 - комментарии
 - адрес обложки
 
-### def get_books_ids(url, start_page, end_page)
+#### def get_books_ids(url, start_page, end_page)
 
 Функция получает id всех книг на страницах со start_page по end_page включительно. 
 
-### def download_books_w_user_params(url, books_ids, skip_txt, skip_imgs, dwnld_dir)
+#### def download_books_w_user_params(url, books_ids, skip_txt, skip_imgs, dwnld_dir)
 
 Функция для скачивания книг, обложек и данных о книгах с id из списка books_ids в папку dwnld_dir.  Возвращает JSON файл с информацией о скачанных книгах.
 Если параметры skip_txt и skip_imgs имеют значение False(не указаны при запуске в командной строке), то функция сохраняет книги и обложки к ним в директ орию dwnld_dir.
