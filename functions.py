@@ -114,6 +114,7 @@ def download_books_w_user_params(url,
         try:
             book_url = urljoin(url, f"b{book_id}/")
             response = requests.get(book_url)
+            check_for_redirect(response)
             book_description = parse_book_page(response)
             if not skip_txt:
                 book_download_url = \
