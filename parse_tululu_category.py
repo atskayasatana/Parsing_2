@@ -18,8 +18,8 @@ if __name__ == '__main__':
     default_dwnld_dir = Path(os.path.join(project_dir, 'Downloads'))
 
     parser = argparse.ArgumentParser(
-                description='Скачиваем книги с сайта tululu.org'
-                                     )
+        description='Скачиваем книги с сайта tululu.org'
+    )
     parser.add_argument('-s',
                         '--start_page',
                         nargs='?',
@@ -58,7 +58,6 @@ if __name__ == '__main__':
                         type=pathlib.Path)
 
     args = parser.parse_args()
-
     start_page = args.start_page
     end_page = args.end_page
     destination_folder = args.dest_folder
@@ -66,23 +65,49 @@ if __name__ == '__main__':
     skip_txt = args.skip_txt
     books_json_path = args.json_path
 
+    if start_page > end_page:
+        start_page, end_page = end_page, start_page
 
     if not (skip_imgs or skip_txt):
         if destination_folder:
-            if not os.access(os.path.dirname(destination_folder), os.W_OK):
-                destination_folder = default_dwnld_dir
-                print('Path to destination folder is invalid.')
-                print('Download folder created using default value')
-            Path(destination_folder).mkdir(parents=True, exist_ok=True)
+            if not os.access(os.path.dirname(destination_folder),
+                             os.F_OK | os.W_OK | os.R_OK | os.X_OK):
+                try:
+                    Path(destination_folder).mkdir(parents=True, exist_ok=True)
+                except (OSError, IOError):
+                    destination_folder = default_dwnld_dir
+                    print('Нельзя создать папку по указанному адресу.')
+                    print('Результаты скачивания будут сохранены в папку'
+                          ' Downloads проекта')
+                    Path(destination_folder).mkdir(parents=True, exist_ok=True)
+                    pass
 
     if not books_json_path:
         books_json_path = Path(os.path.join(destination_folder, 'books.json'))
+        print('Не указан путь к JSON файлу.')
+        print(f'Файл JSON будет сохранен в папку:{destination_folder} '
+              'с результатами скачивания как books.json.')
+    else:
+        if not os.access(os.path.dirname(books_json_path),
+                         os.F_OK | os.W_OK | os.R_OK | os.X_OK):
+            try:
+                Path(os.path.dirname(books_json_path)). \
+                    mkdir(parents=True, exist_ok=True)
+                print(f'Файл {os.path.basename(books_json_path)} с книгами '
+                      f'будет сохранен в папку:'
+                      f' {os.path.dirname(books_json_path)}')
+            except (OSError, IOError):
+                print('Нельзя сохранить JSON по указанному адресу.')
+                print(f'Файл JSON будет сохранен в папку {destination_folder} '
+                      'с результатами скачивания как books.json.')
+                books_json_path = Path(
+                    os.path.join(destination_folder, 'books.json'))
 
     if not skip_txt:
-        Path(os.path.join(destination_folder, 'books'))\
+        Path(os.path.join(destination_folder, 'books')) \
             .mkdir(parents=True, exist_ok=True)
     if not skip_imgs:
-        Path(os.path.join(destination_folder, 'images'))\
+        Path(os.path.join(destination_folder, 'images')) \
             .mkdir(parents=True, exist_ok=True)
 
     url = 'https://tululu.org/l55/'
@@ -104,11 +129,5 @@ if __name__ == '__main__':
                                                     skip_imgs,
                                                     destination_folder)
 
-    try:
-        with open(books_json_path, "w") as books_json_file:
-            json.dump(downloaded_books, books_json_file, ensure_ascii=False)
-    except FileNotFoundError:
-        print('JSON не может быть сохранен в указанном месте')
-        print('Файл будет сохранен в директорию скачивания как books.json')
-        with open(default_json_path, "w") as books_json_file:
-            json.dump(downloaded_books, books_json_file, ensure_ascii=False)
+    with open(books_json_path, "w") as books_json_file:
+        json.dump(downloaded_books, books_json_file, ensure_ascii=False)
