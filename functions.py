@@ -4,7 +4,6 @@ import requests
 import time
 
 from bs4 import BeautifulSoup
-from json import JSONDecodeError
 from pathvalidate import sanitize_filename
 from urllib.parse import urljoin
 from urllib3.exceptions import HTTPError
