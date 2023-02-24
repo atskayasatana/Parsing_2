@@ -10,15 +10,6 @@ from urllib.parse import urljoin
 from urllib3.exceptions import HTTPError
 
 
-def check_response_json(response):
-    try:
-        decoded_json = response.json()
-        if 'error' in decoded_json:
-            raise HTTPError
-    except JSONDecodeError:
-        pass
-
-
 def download_txt(url, payload, filename, folder='books/'):
     response = requests.get(url, params=payload)
     response.raise_for_status()
@@ -82,7 +73,6 @@ def get_books_ids(url, start_page, end_page):
             genre_page_url = urljoin(url, f"{page}/")
             response = requests.get(genre_page_url)
             response.raise_for_status()
-            check_response_json(response)
             check_for_redirect(response)
             soup = BeautifulSoup(response.text, 'lxml')
             books_selector = ".d_book .bookimage a[href^='/b']"
@@ -114,6 +104,7 @@ def download_books_w_user_params(url,
         try:
             book_url = urljoin(url, f"b{book_id}/")
             response = requests.get(book_url)
+            response.raise_for_status()
             check_for_redirect(response)
             book_description = parse_book_page(response)
             if not skip_txt:
