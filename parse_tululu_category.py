@@ -137,5 +137,3 @@ if __name__ == '__main__':
 
     except HTTPError:
         print('Искомая страница не найдена.')
-
-
