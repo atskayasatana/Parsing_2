@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from functions import check_for_redirect, download_books_w_user_params
 from functions import get_books_ids
 from pathlib import Path
+from urllib3.exceptions import HTTPError
 
 if __name__ == '__main__':
 
@@ -110,24 +111,31 @@ if __name__ == '__main__':
         Path(os.path.join(destination_folder, 'images')) \
             .mkdir(parents=True, exist_ok=True)
 
-    url = 'https://tululu.org/l55/'
-    response = requests.get(url)
-    check_for_redirect(response)
-    soup = BeautifulSoup(response.text, 'lxml')
-    pages = soup.select(".center .npage")
+    try:
+        url = 'https://tululu.org/l55/'
+        response = requests.get(url)
+        response.raise_for_status()
+        check_for_redirect(response)
+        soup = BeautifulSoup(response.text, 'lxml')
+        pages = soup.select(".center .npage")
 
-    if pages:
-        max_pages_qty = int(pages[-1].text)
+        if pages:
+            max_pages_qty = int(pages[-1].text)
 
-    if end_page > max_pages_qty:
-        end_page = max_pages_qty
+        if end_page > max_pages_qty:
+            end_page = max_pages_qty
 
-    books_ids = get_books_ids(url, start_page, end_page)
-    downloaded_books = download_books_w_user_params('https://tululu.org',
-                                                    books_ids,
-                                                    skip_txt,
-                                                    skip_imgs,
-                                                    destination_folder)
+        books_ids = get_books_ids(url, start_page, end_page)
+        downloaded_books = download_books_w_user_params('https://tululu.org',
+                                                        books_ids,
+                                                        skip_txt,
+                                                        skip_imgs,
+                                                        destination_folder)
 
-    with open(books_json_path, "w") as books_json_file:
-        json.dump(downloaded_books, books_json_file, ensure_ascii=False)
+        with open(books_json_path, "w") as books_json_file:
+            json.dump(downloaded_books, books_json_file, ensure_ascii=False)
+
+    except HTTPError:
+        print('Искомая страница не найдена.')
+
+
